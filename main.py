@@ -3,7 +3,8 @@ from fonctions import *
 def main():
     while True:
         print("Résolution de problème de flot")
-        chemin = input("Entrez le chemin du fichier texte (.txt) : ").strip()
+        numero = input("Entrez le numéro du fichier (0-10) : ").strip()
+        chemin = f"data/{numero}.txt"
 
         try:
             type_probleme, n = detecter_type_probleme(chemin)
