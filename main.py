@@ -26,8 +26,8 @@ def main():
 
             if choix == "1":
                 valeur_flot = ford_fulkerson(capacites, s, t)
-            #elif choix == "2":
-                #fonction de l'algo pousser-réétiqueter
+            elif choix == "2":
+                valeur_flot = pousser_réétiqueter(capacites, s, t)
             else:
                 print("Choix invalide.")
                 continue

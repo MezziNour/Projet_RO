@@ -145,3 +145,73 @@ def ford_fulkerson(c, s, t):
     afficher_matrice_FF("finale", c, flot)
     
     return flot_max
+
+def pousser_réétiqueter(c, s, t):
+    n = len(c)
+    # Initialize flow and height
+    flow = [[0] * n for _ in range(n)]
+    height = [0] * n
+    excess = [0] * n
+    height[s] = n
+
+    # Initialize preflow: saturate all edges from source
+    for v in range(n):
+        if c[s][v] > 0:
+            flow[s][v] = c[s][v]
+            flow[v][s] = -flow[s][v]
+            excess[v] = c[s][v]
+            excess[s] -= c[s][v]
+
+    # Afficher la matrice de flot initiale
+    i = 0
+    afficher_matrice_FF(f"initiale {i}", c, flow)
+    
+    def push(u, v):
+        delta = min(excess[u], c[u][v] - flow[u][v])
+        flow[u][v] += delta
+        flow[v][u] -= delta
+        excess[u] -= delta
+        excess[v] += delta
+
+    def relabel(u):
+        min_height = float('inf')
+        for v in range(n):
+            if c[u][v] - flow[u][v] > 0:
+                min_height = min(min_height, height[v])
+        if min_height < float('inf'):
+            height[u] = min_height + 1
+
+    def find_excess_vertex():
+        candidates = [u for u in range(n) if u != s and u != t and excess[u] > 0]
+        if not candidates:
+            return None
+        # Sort by height (descending) and index (ascending)
+        candidates.sort(key=lambda u: (-height[u], u))
+        return candidates[0]
+
+    while True:
+        i += 1
+        u = find_excess_vertex()
+        if u is None:
+            break
+
+        pushed = False
+        # Try to push flow
+        for v in range(n):
+            if c[u][v] - flow[u][v] > 0 and height[u] == height[v] + 1:
+                push(u, v)
+                pushed = True
+                print("\n---------------------------------------------------------------------------------------\n")
+                print(f"Pousser de v{u+1} à v{v+1} : {flow[u][v]} unités")
+                if v == t:  # Prioritize pushing to t
+                    break
+
+        if not pushed:
+            relabel(u)
+            print("\n---------------------------------------------------------------------------------------\n")
+            print(f"Réétiqueter v{u+1} : nouvelle hauteur = {height[u]}")
+
+        # afficher la matrice de flot
+        afficher_matrice_FF(f"itération {i}", c, flow)
+
+    return sum(flow[s][v] for v in range(n))
