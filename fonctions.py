@@ -59,7 +59,7 @@ def afficher_bellman(distances, parents):
         pred = "-" if parents[i] == -1 else f"v{parents[i]+1}"
         print(f"v{i+1:^5} │ {distances[i]:^8} │ {pred:^11}")
 
-def afficher_matrice_FF(titre, c, flot):
+def afficher_matrice_FF(titre, c, flot, h=None):
     # Affiche la matrice de flot sous la forme x/y, où x = flot actuel, y = capacité.
     n = len(c)
     cell_width = 9  # Largeur constante pour chaque cellule
@@ -67,8 +67,13 @@ def afficher_matrice_FF(titre, c, flot):
     print(f"\nMatrice {titre} :")
     print("     ", end="")
     for j in range(n):
-        print(f"{'v'+str(j+1):^{cell_width}}", end="│")
+        if h:
+            header = f"v{j+1}({h[j]})"
+        else:
+            header = f"v{j+1}"
+        print(f"{header:^{cell_width}}", end="│")
     print("\n    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
+
 
 
     for i in range(n):
@@ -148,70 +153,78 @@ def ford_fulkerson(c, s, t):
 
 def pousser_réétiqueter(c, s, t):
     n = len(c)
-    # Initialize flow and height
-    flow = [[0] * n for _ in range(n)]
-    height = [0] * n
-    excess = [0] * n
-    height[s] = n
+    # Initialisation des variables
+    flot = [[0] * n for _ in range(n)]
+    hauteur = [0] * n
+    excedent = [0] * n
+    hauteur[s] = n
 
-    # Initialize preflow: saturate all edges from source
+    # Initialisation du pre-flot : saturer les arcs sortants du sommet source
     for v in range(n):
         if c[s][v] > 0:
-            flow[s][v] = c[s][v]
-            flow[v][s] = -flow[s][v]
-            excess[v] = c[s][v]
-            excess[s] -= c[s][v]
+            flot[s][v] = c[s][v]
+            flot[v][s] = -flot[s][v]
+            excedent[v] = c[s][v]
+            excedent[s] -= c[s][v]
 
     # Afficher la matrice de flot initiale
     i = 0
-    afficher_matrice_FF(f"initiale {i}", c, flow)
+    afficher_matrice_FF(f"initiale {i}", c, flot, hauteur)
     
-    def push(u, v):
-        delta = min(excess[u], c[u][v] - flow[u][v])
-        flow[u][v] += delta
-        flow[v][u] -= delta
-        excess[u] -= delta
-        excess[v] += delta
+    def pousser(u, v):
+        delta = min(excedent[u], c[u][v] - flot[u][v])
+        flot[u][v] += delta
+        flot[v][u] -= delta
+        ancien_excedent_v = excedent[v]
+        excedent[u] -= delta
+        excedent[v] += delta
+         # Affichage adapté pour les valeurs négatives
+        if delta < 0:
+            print(f"Pousser de v{v+1} à v{u+1} : {ancien_excedent_v - excedent[v]} unités")
+        else:
+            print(f"Pousser de v{u+1} à v{v+1} : {delta} unités")
 
-    def relabel(u):
-        min_height = float('inf')
+    def reetiqueter(u):
+        min_hauteur = float('inf')
         for v in range(n):
-            if c[u][v] - flow[u][v] > 0:
-                min_height = min(min_height, height[v])
-        if min_height < float('inf'):
-            height[u] = min_height + 1
+            if c[u][v] - flot[u][v] > 0:
+                min_hauteur = min(min_hauteur, hauteur[v])
+        if min_hauteur < float('inf'):
+            hauteur[u] = min_hauteur + 1
 
-    def find_excess_vertex():
-        candidates = [u for u in range(n) if u != s and u != t and excess[u] > 0]
-        if not candidates:
+    def trouver_excedents():
+        candidats = [u for u in range(n) if u != s and u != t and excedent[u] > 0]
+        if not candidats:
             return None
-        # Sort by height (descending) and index (ascending)
-        candidates.sort(key=lambda u: (-height[u], u))
-        return candidates[0]
+
+        # Sort candidates by height (descending) and then by index (ascending)
+        candidats.sort(key=lambda u: (-hauteur[u], u))
+        return candidats[0]
 
     while True:
         i += 1
-        u = find_excess_vertex()
+        print(f"\nItération {i} :")
+        u = trouver_excedents()
         if u is None:
+            print("Aucun sommet avec excédent trouvé. Fin de l'algorithme.")
+            afficher_matrice_FF(f"Finale {i}", c, flot, hauteur)
             break
 
-        pushed = False
-        # Try to push flow
+        poussee = False
+        # Pousser
         for v in range(n):
-            if c[u][v] - flow[u][v] > 0 and height[u] == height[v] + 1:
-                push(u, v)
-                pushed = True
-                print("\n---------------------------------------------------------------------------------------\n")
-                print(f"Pousser de v{u+1} à v{v+1} : {flow[u][v]} unités")
-                if v == t:  # Prioritize pushing to t
+            if c[u][v] - flot[u][v] > 0 and hauteur[u] == hauteur[v] + 1:
+                pousser(u, v)
+                poussee = True
+                if v == t:  # Prioriser le flot vers t
                     break
 
-        if not pushed:
-            relabel(u)
-            print("\n---------------------------------------------------------------------------------------\n")
-            print(f"Réétiqueter v{u+1} : nouvelle hauteur = {height[u]}")
+        # Réétiqueter
+        if not poussee:
+            reetiqueter(u)
+            print(f"Réétiqueter v{u+1} -> nouvelle hauteur = {hauteur[u]}")
 
         # afficher la matrice de flot
-        afficher_matrice_FF(f"itération {i}", c, flow)
+        afficher_matrice_FF(f"itération {i}", c, flot, hauteur)
 
-    return sum(flow[s][v] for v in range(n))
+    return sum(flot[s][v] for v in range(n))
