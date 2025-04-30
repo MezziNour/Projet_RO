@@ -40,6 +40,19 @@ def main():
             afficher_matrice(capacites, "Matrice des capacités")
             afficher_matrice(couts, "Matrice des coûts")
 
+            s = 0
+            t = n-1
+
+            flux_demandee = None
+            while flux_demandee is None:
+                try:
+                    flux_demandee = int(input("\nEntrez la valeur de flot souhaitée : "))
+                except ValueError:
+                    print("Veuillez entrer un entier valide.")
+
+            flot, cout_total = flot_cout_minimal(capacites, couts, s, t, flux_demandee)
+            print(f"\nRésultat : Coût minimal pour un flot de {flux_demandee} = {cout_total}")
+
         else:
             print("Problème inconnu.")
 
