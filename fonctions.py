@@ -195,8 +195,7 @@ def pousser_réétiqueter(c, s, t, verbose=False):
             min_hauteur = float('inf')
             for v in range(n):
                 if c[u][v] - flot[u][v] > 0:
-                    if hauteur[v] < min_hauteur:
-                        min_hauteur = hauteur[v]
+                    min_hauteur = min(min_hauteur, hauteur[v])
                     if hauteur[u] == hauteur[v] + 1:
                         pousser(u, v)
                         break
