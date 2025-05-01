@@ -248,6 +248,14 @@ def afficher_table_bellman(snapshots, names):
             row.append(cell)
         rows.append(row)
 
+    stop = len(rows) - 1
+    for i in range(1, len(rows)):
+        if rows[i][1:] == rows[i-1][1:]:
+            stop = i
+            break
+
+    rows = rows[:stop+1]
+
     table = [header] + rows
     col_widths = [max(len(r[j]) for r in table) for j in range(len(header))]
 
