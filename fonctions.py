@@ -176,12 +176,13 @@ def pousser_réétiqueter(c, s, t, verbose=False):
 
     def pousser(u, v):
         delta = min(excedent[u], c[u][v] - flot[u][v])
-        flot[u][v] += delta
-        flot[v][u] -= delta
-        excedent[u] -= delta
-        excedent[v] += delta
-        if v != s and v != t and excedent[v] == delta:
-            actifs.append(v)
+        if delta > 0:
+            flot[u][v] += delta
+            flot[v][u] -= delta
+            excedent[u] -= delta
+            excedent[v] += delta
+            if v != s and v != t and excedent[v] == delta:
+                actifs.append(v)
 
     def reetiqueter(u):
         min_hauteur = float('inf')
