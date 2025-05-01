@@ -283,7 +283,6 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
         for v in range(n):
             if c[u][v] > 0:
                 cout_res[u][v] = couts[u][v]
-                cout_res[v][u] = -couts[u][v]
 
     flot = [[0]*n for _ in range(n)]
     flux_courant = 0
@@ -298,17 +297,15 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
         dist[s] = 0
         snapshots = [(dist.copy(), parent.copy())]
 
-        for _ in range(1, n):
-            updated = False
+        for _ in range(n-1):
             new_dist = dist.copy()
             new_parent = parent.copy()
             for u in range(n):
                 if dist[u] == float('inf'): continue
                 for v in range(n):
-                    if cap_res[u][v] > 0 and dist[u] + cout_res[u][v] < new_dist[v]:
-                        new_dist[v] = dist[u] + cout_res[u][v]
+                    if cap_res[u][v] > 0 and new_dist[u] + cout_res[u][v] < new_dist[v]:
+                        new_dist[v] = new_dist[u] + cout_res[u][v]
                         new_parent[v] = u
-                        updated = True
             dist, parent = new_dist, new_parent
             snapshots.append((dist.copy(), parent.copy()))
 
@@ -335,21 +332,24 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
 
         print(f"Chaîne augmentante {it} : {' -> '.join(names[u] for u, _ in chemin)} -> {names[t]} | flot potentiel = {delta}")
 
-        # Mise à jour des flots et du coût
+        # Mise à jour des flots, des coûts résiduels et du coût total
         for u, v in chemin:
             cap_res[u][v] -= delta
             cap_res[v][u] += delta
             if c[u][v] > 0:
                 flot[u][v] += delta
                 cout_total += delta * couts[u][v]
+                cout_res[v][u] = -couts[u][v]  # Met à jour le coût résiduel inverse
             else:
                 flot[v][u] -= delta
                 cout_total -= delta * couts[v][u]
+                cout_res[u][v] = -couts[v][u]  # Met à jour le coût résiduel inverse
 
         flux_courant += delta
 
         print(f"\nGraphe résiduel après itération {it} :")
         afficher_matrice(cap_res, "capacités résiduelles")
+        afficher_matrice(cout_res, "coûts résiduels")
 
         it += 1
 
