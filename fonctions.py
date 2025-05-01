@@ -88,7 +88,7 @@ def afficher_matrice_FF(titre, c, flot, h=None):
 
         
 # Parcours en largeur
-def plargeur_chaine_améliorante(c, flot, s, t, parent):
+def plargeur_chaine_améliorante(c, flot, s, t, parent, verbose=False):
     n = len(c)
     visite = [False] * n
     file = deque()
@@ -96,7 +96,8 @@ def plargeur_chaine_améliorante(c, flot, s, t, parent):
     visite[s] = True
     parent[s] = -1
 
-    print("\nParcours en largeur pour chercher une chaîne améliorante :")
+    if verbose:
+        print("\nParcours en largeur pour chercher une chaîne améliorante :")
 
     while file:
         u = file.popleft()
@@ -106,23 +107,26 @@ def plargeur_chaine_améliorante(c, flot, s, t, parent):
                 parent[v] = u # Met à jour le tableau des parents quand un chemin est trouvé
                 visite[v] = True
                 file.append(v)
-                print(f"    v{u+1} -> v{v+1} (capacité résiduelle = {residuel})")
+                if verbose:
+                    print(f"    v{u+1} -> v{v+1} (capacité résiduelle = {residuel})")
                 if v == t:
                     return True # Un chemin jusqu'au sommet final est trouvé
     return False # Aucun chemin trouvable
 
 # Algorithme de Ford-Fulkerson 
-def ford_fulkerson(c, s, t):
+def ford_fulkerson(c, s, t, verbose=False):
     n = len(c)
     flot = [[0]*n for _ in range(n)] # Initialisation du flot à 0
     parent = [-1] * n
     flot_max = 0
     i = 1 # Compteur d'itérations
 
-    print("\nLe graphe résiduel initial est le graphe de départ.")
+    if verbose:
+        print("\nLe graphe résiduel initial est le graphe de départ.")
     
-    while plargeur_chaine_améliorante(c, flot, s, t, parent):
-        print(f"Itération {i} : ")
+    while plargeur_chaine_améliorante(c, flot, s, t, parent, verbose):
+        if verbose:
+            print(f"Itération {i} : ")
         chemin = []
         v = t
         flot_ajoute = float('inf') # Plus petit résiduel trouvé sur le chemin
@@ -134,7 +138,8 @@ def ford_fulkerson(c, s, t):
             flot_ajoute = min(flot_ajoute, c[u][v] - flot[u][v])
             v = u
 
-        print(f"\nChaîne améliorante {i} : " + " -> ".join([f"v{u+1}" for u, _ in chemin] + [f"v{t+1}"]) + f" de flot : {flot_ajoute}")
+        if verbose:
+            print(f"\nChaîne améliorante {i} : " + " -> ".join([f"v{u+1}" for u, _ in chemin] + [f"v{t+1}"]) + f" de flot : {flot_ajoute}")
 
         # Mise à jour des flots dans la matrice
         for u, v in chemin:
@@ -142,47 +147,41 @@ def ford_fulkerson(c, s, t):
             flot[v][u] -= flot_ajoute # Flot inverse pour maintenir la conservation
 
         flot_max += flot_ajoute
-        afficher_matrice_FF(f"résiduelle {i}", c, flot)
+        if verbose:
+            afficher_matrice_FF(f"résiduelle {i}", c, flot)
         i += 1
         
-    print("\nOn ne peut plus accéder au dernier sommet. Fin de l'agorithme.") 
-    
-    afficher_matrice_FF("finale", c, flot)
+    if verbose:
+        print("\nOn ne peut plus accéder au dernier sommet. Fin de l'agorithme.") 
+        afficher_matrice_FF("finale", c, flot)
     
     return flot_max
 
-def pousser_réétiqueter(c, s, t):
+def pousser_réétiqueter(c, s, t, verbose=False):
     n = len(c)
-    # Initialisation des variables
     flot = [[0] * n for _ in range(n)]
     hauteur = [0] * n
     excedent = [0] * n
     hauteur[s] = n
-
     # Initialisation du pre-flot : saturer les arcs sortants du sommet source
+    actifs = deque()
     for v in range(n):
         if c[s][v] > 0:
             flot[s][v] = c[s][v]
             flot[v][s] = -flot[s][v]
             excedent[v] = c[s][v]
             excedent[s] -= c[s][v]
+            if v != s and v != t:
+                actifs.append(v)
 
-    # Afficher la matrice de flot initiale
-    i = 0
-    afficher_matrice_FF(f"initiale {i}", c, flot, hauteur)
-    
     def pousser(u, v):
         delta = min(excedent[u], c[u][v] - flot[u][v])
         flot[u][v] += delta
         flot[v][u] -= delta
-        ancien_excedent_v = excedent[v]
         excedent[u] -= delta
         excedent[v] += delta
-         # Affichage adapté pour les valeurs négatives
-        if delta < 0:
-            print(f"Pousser de v{v+1} à v{u+1} : {ancien_excedent_v - excedent[v]} unités")
-        else:
-            print(f"Pousser de v{u+1} à v{v+1} : {delta} unités")
+        if v != s and v != t and excedent[v] == delta:
+            actifs.append(v)
 
     def reetiqueter(u):
         min_hauteur = float('inf')
@@ -192,45 +191,18 @@ def pousser_réétiqueter(c, s, t):
         if min_hauteur < float('inf'):
             hauteur[u] = min_hauteur + 1
 
-    def trouver_excedents():
-        candidats = [u for u in range(n) if u != s and u != t and excedent[u] > 0]
-        if not candidats:
-            return None
-
-        # Sort candidates by height (descending) and then by index (ascending)
-        candidats.sort(key=lambda u: (-hauteur[u], u))
-        return candidats[0]
-
-    while True:
-        i += 1
-        print(f"\nItération {i} :")
-        u = trouver_excedents()
-        if u is None:
-            print("Aucun sommet avec excédent trouvé. Fin de l'algorithme.")
-            afficher_matrice_FF(f"Finale {i}", c, flot, hauteur)
-            break
-
-        poussee = False
-        # Pousser
-        for v in range(n):
-            if c[u][v] - flot[u][v] > 0 and hauteur[u] == hauteur[v] + 1:
-                pousser(u, v)
-                poussee = True
-                if v == t:  # Prioriser le flot vers t
+    # Boucle principale de l'algorithme
+    while actifs:
+        u = actifs.popleft()
+        while excedent[u] > 0:
+            for v in range(n):
+                if c[u][v] - flot[u][v] > 0 and hauteur[u] == hauteur[v] + 1:
+                    pousser(u, v)
                     break
-
-        # Réétiqueter
-        if not poussee:
-            reetiqueter(u)
-            print(f"Réétiqueter v{u+1} -> nouvelle hauteur = {hauteur[u]}")
-
-        # afficher la matrice de flot
-        afficher_matrice_FF(f"itération {i}", c, flot, hauteur)
+            else:
+                reetiqueter(u)
 
     return sum(flot[s][v] for v in range(n))
-
-
-
 
 def afficher_table_bellman(snapshots, names):
     header = ["k"] + names[:]
@@ -281,7 +253,7 @@ def afficher_table_bellman(snapshots, names):
     print_line('└', '┴', '┘')
 
 
-def flot_cout_minimal(c, couts, s, t, flux_demandee):
+def flot_cout_minimal(c, couts, s, t, flux_demandee, verbose=False):
     n = len(c)
     # Réseau résiduel des capacités
     cap_res = [row[:] for row in c]
@@ -306,6 +278,7 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
         snapshots = [(dist.copy(), parent.copy())]
 
         for _ in range(n-1):
+            updated = False
             new_dist = dist.copy()
             new_parent = parent.copy()
             for u in range(n):
@@ -314,31 +287,47 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
                     if cap_res[u][v] > 0 and new_dist[u] + cout_res[u][v] < new_dist[v]:
                         new_dist[v] = new_dist[u] + cout_res[u][v]
                         new_parent[v] = u
+                        updated = True
             dist, parent = new_dist, new_parent
             snapshots.append((dist.copy(), parent.copy()))
+            if not updated:
+                break
 
         # Affichage du tableau de Bellman
-        print(f"\nItération {it} :")
-        afficher_table_bellman(snapshots, names)
+        if verbose:
+            print(f"\nItération {it} :")
+            afficher_table_bellman(snapshots, names)
 
         # Pas de chemin si parent[t] = -1
         if parent[t] == -1:
-            print("Pas de chemin résiduel disponible – arrêt de l'algorithme.")
+            if verbose:
+                print("Pas de chemin résiduel disponible – arrêt de l'algorithme.")
             break
 
         # Reconstruction de la chaîne augmentante
         chemin = []
         v = t
+        vus = set() # Ensemble des sommets visités pour éviter les cycles
+        vus.add(t)
+        vus.add(s)
         while v != s:
             u = parent[v]
+            if u == -1 or v in vus:  # Sécurité anti-boucle infinie et anti-cycle
+                chemin = []
+                break
             chemin.insert(0, (u, v))
+            vus.add(v)
             v = u
+
+        if not chemin:
+            break
 
         # Capacité minimale le long du chemin
         flot_potentiel = min(cap_res[u][v] for u, v in chemin)
         delta = min(flot_potentiel, flux_demandee - flux_courant)
 
-        print(f"Chaîne augmentante {it} : {' -> '.join(names[u] for u, _ in chemin)} -> {names[t]} | flot potentiel = {delta}")
+        if verbose:
+            print(f"Chaîne augmentante {it} : {' -> '.join(names[u] for u, _ in chemin)} -> {names[t]} | flot potentiel = {delta}")
 
         # Mise à jour des flots, des coûts résiduels et du coût total
         for u, v in chemin:
@@ -355,12 +344,16 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
 
         flux_courant += delta
 
-        print(f"\nGraphe résiduel après itération {it} :")
-        afficher_matrice(cap_res, "capacités résiduelles")
-        afficher_matrice(cout_res, "coûts résiduels")
+        if verbose:
+            print(f"\nGraphe résiduel après itération {it} :")
+            afficher_matrice(cap_res, "capacités résiduelles")
+            afficher_matrice(cout_res, "coûts résiduels")
 
         it += 1
 
     if flux_courant == flux_demandee:
-        print(f"\nAtteint le flot demandé = {flux_demandee} | coût minimal = {cout_total}\n")
-    return flot, cout_total
+        if verbose:
+            print(f"\nAtteint le flot demandé = {flux_demandee} | coût minimal = {cout_total}\n")
+        return flot, cout_total
+    else:
+        return flot, float('inf')
