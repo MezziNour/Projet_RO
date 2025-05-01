@@ -230,6 +230,8 @@ def pousser_réétiqueter(c, s, t):
     return sum(flot[s][v] for v in range(n))
 
 
+
+
 def afficher_table_bellman(snapshots, names):
     header = ["k"] + names[:]
     rows = []
@@ -237,46 +239,45 @@ def afficher_table_bellman(snapshots, names):
         row = [str(k)]
         for i in range(len(names)):
             if dist[i] == float('inf'):
-                val = "+∞"
+                cell = "+∞"
             else:
-                val = str(dist[i]) if parent[i] == -1 else f"{dist[i]}_{names[parent[i]]}"
-            row.append(val)
+                if parent[i] == -1:
+                    cell = str(dist[i])
+                else:
+                    cell = f"{names[parent[i]]}{dist[i]}"
+            row.append(cell)
         rows.append(row)
 
-    # Largeurs colonnes
     table = [header] + rows
     col_widths = [max(len(r[j]) for r in table) for j in range(len(header))]
 
-    # Lignes
     def print_line(left, mid, right):
         line = left
         for idx, w in enumerate(col_widths):
-            line += '─' * (w + 2) #U+2500
+            line += '─' * (w + 2)
             line += mid if idx < len(col_widths)-1 else right
         print(line)
 
     def print_row(items):
-        row = '│' #U+2502
+        row = '│'
         for idx, item in enumerate(items):
-            row += ' ' + item.center(col_widths[idx]) + ' ' + '│' 
+            row += ' ' + item.center(col_widths[idx]) + ' ' + '│'
         print(row)
 
     print()
-    print_line('┌', '┬', '┐') #U+250C U+252C U+2510
+    print_line('┌', '┬', '┐')
     print_row(header)
-    print_line('├', '┼', '┤') #U+251C U+253C U+2524
+    print_line('├', '┼', '┤')
     for row in rows:
         print_row(row)
-    print_line('└', '┴', '┘') #U+2514 U+2534 U+2518
+    print_line('└', '┴', '┘')
 
 
 def flot_cout_minimal(c, couts, s, t, flux_demandee):
     n = len(c)
-    flot = [[0]*n for _ in range(n)]
-    cout_total = 0
-
-    # Initialisation du réseau résiduel
+    # Réseau résiduel des capacités
     cap_res = [row[:] for row in c]
+    # Matrice des coûts résiduels
     cout_res = [[0]*n for _ in range(n)]
     for u in range(n):
         for v in range(n):
@@ -284,38 +285,39 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
                 cout_res[u][v] = couts[u][v]
                 cout_res[v][u] = -couts[u][v]
 
+    flot = [[0]*n for _ in range(n)]
     flux_courant = 0
+    cout_total = 0
     it = 1
     names = ['s'] + [chr(ord('a')+i) for i in range(n-2)] + ['t']
 
     while flux_courant < flux_demandee:
-        # Bellman
-        dist_prev = [float('inf')] * n
-        parent_prev = [-1] * n
-        dist_prev[s] = 0
-        snapshots = [(dist_prev.copy(), parent_prev.copy())]
+        # Initialisation Bellman
+        dist = [float('inf')] * n
+        parent = [-1] * n
+        dist[s] = 0
+        snapshots = [(dist.copy(), parent.copy())]
 
-        # n-1 itérations
-        for k_relax in range(1, n):
-            dist_new   = dist_prev.copy()
-            parent_new = parent_prev.copy()
+        for _ in range(1, n):
+            updated = False
+            new_dist = dist.copy()
+            new_parent = parent.copy()
             for u in range(n):
+                if dist[u] == float('inf'): continue
                 for v in range(n):
-                    if cap_res[u][v] > 0 and dist_prev[u] + cout_res[u][v] < dist_new[v]:
-                        dist_new[v]   = dist_prev[u] + cout_res[u][v]
-                        parent_new[v] = u
-            snapshots.append((dist_new.copy(), parent_new.copy()))
-            # stabilisation
-            if dist_new == dist_prev and parent_new == parent_prev:
-                break
-            dist_prev, parent_prev = dist_new, parent_new
+                    if cap_res[u][v] > 0 and dist[u] + cout_res[u][v] < new_dist[v]:
+                        new_dist[v] = dist[u] + cout_res[u][v]
+                        new_parent[v] = u
+                        updated = True
+            dist, parent = new_dist, new_parent
+            snapshots.append((dist.copy(), parent.copy()))
 
-        # Affichage tableau Bellman
+        # Affichage du tableau de Bellman
         print(f"\nItération {it} :")
         afficher_table_bellman(snapshots, names)
 
-        # Si pas de chemin résiduel
-        if parent_prev[t] == -1:
+        # Pas de chemin si parent[t] = -1
+        if parent[t] == -1:
             print("Pas de chemin résiduel disponible – arrêt de l'algorithme.")
             break
 
@@ -323,34 +325,29 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee):
         chemin = []
         v = t
         while v != s:
-            u = parent_prev[v]
+            u = parent[v]
             chemin.insert(0, (u, v))
             v = u
 
+        # Capacité minimale le long du chemin
         flot_potentiel = min(cap_res[u][v] for u, v in chemin)
-        print("Chaîne augmentante {} : {} -> {} | flot potentiel = {}".format(
-            it,
-            " -> ".join(names[u] for u, _ in chemin),
-            names[t],
-            flot_potentiel
-        ))
-
-        # Flux ajouté
         delta = min(flot_potentiel, flux_demandee - flux_courant)
-        print(f"Flux ajouté cette itération : {delta}")
-        if delta <= 0:
-            print("Aucun flux additionnel possible – fin de l'algorithme.")
-            break
 
-        # Mise à jour du flot, du coût et du réseau résiduel
+        print(f"Chaîne augmentante {it} : {' -> '.join(names[u] for u, _ in chemin)} -> {names[t]} | flot potentiel = {delta}")
+
+        # Mise à jour des flots et du coût
         for u, v in chemin:
             cap_res[u][v] -= delta
             cap_res[v][u] += delta
-            flot[u][v] += delta
-            cout_total += delta * cout_res[u][v]
+            if c[u][v] > 0:
+                flot[u][v] += delta
+                cout_total += delta * couts[u][v]
+            else:
+                flot[v][u] -= delta
+                cout_total -= delta * couts[v][u]
+
         flux_courant += delta
 
-        # Affichage du graphe résiduel
         print(f"\nGraphe résiduel après itération {it} :")
         afficher_matrice(cap_res, "capacités résiduelles")
 
