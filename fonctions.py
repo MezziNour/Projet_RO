@@ -1,41 +1,69 @@
 from collections import deque
+from typing import List, Tuple, Optional
 
 # Lecture des données et stockage en mémoire
-def detecter_type_probleme(chemin): 
-    with open(chemin, 'r') as f:
+def detecter_type_probleme(chemin: str) -> Tuple[str, int]:
+    """
+    Détecte le type de problème de flot à partir d'un fichier.
+    Retourne (type_probleme, n) où type_probleme est 'flot_max' ou 'flot_min', et n est le nombre de sommets.
+    Lève ValueError si le format du fichier est invalide.
+    """
+    with open(chemin, 'r', encoding='utf-8') as f:
         lignes = f.readlines()
-    n = int(lignes[0]) # Le nombre de sommets
+    if not lignes:
+        raise ValueError("Fichier vide.")
+    try:
+        n = int(lignes[0])
+    except Exception as exc:
+        raise ValueError("Première ligne du fichier invalide (doit être un entier).") from exc
     nb_lignes = len(lignes)
     if nb_lignes == n + 1:
         return "flot_max", n
-    elif nb_lignes == 2 * n + 1:
+    if nb_lignes == 2 * n + 1:
         return "flot_min", n
-    else:
-        raise ValueError("Format de fichier incorrect (lignes incohérentes avec n)")
-    # Retourne le type de problème et le nombre de sommets n 
 
-def lire_flot_max(chemin):
-    with open(chemin, 'r') as f:
+    raise ValueError("Format de fichier incorrect (lignes incohérentes avec n)")
+
+def lire_flot_max(chemin: str) -> Tuple[int, List[List[int]]]:
+    """
+    Lit un problème de flot maximum à partir d'un fichier.
+    Retourne (n, capacites) où n est le nombre de sommets et capacites est la matrice des capacités.
+    """
+    with open(chemin, 'r', encoding='utf-8') as f:
         n = int(f.readline())
-        capacites = [list(map(int, f.readline().split())) for _ in range(n)] # Matrice des capacités
+        capacites = [list(map(int, f.readline().split())) for _ in range(n)]
+
+    if len(capacites) != n or any(len(row) != n for row in capacites):
+        raise ValueError("Matrice des capacités invalide.")
+
     return n, capacites
-   
 
-def lire_flot_min(chemin):
-    with open(chemin, 'r') as f:
+
+def lire_flot_min(chemin: str) -> Tuple[int, List[List[int]], List[List[int]]]:
+    """
+    Lit un problème de flot de coût minimal à partir d'un fichier.
+    Retourne (n, capacites, couts) où n est le nombre de sommets, capacites la matrice des capacités, couts la matrice des coûts.
+    """
+    with open(chemin, 'r', encoding='utf-8') as f:
         n = int(f.readline())
-        capacites = [list(map(int, f.readline().split())) for _ in range(n)] # Matrice des capacités
-        couts = [list(map(int, f.readline().split())) for _ in range(n)] # Matrice des coûts
+        capacites = [list(map(int, f.readline().split())) for _ in range(n)]
+        couts = [list(map(int, f.readline().split())) for _ in range(n)]
+
+    if len(capacites) != n or len(couts) != n or any(len(row) != n for row in capacites + couts):
+        raise ValueError("Matrices des capacités ou des coûts invalides.")
+
     return n, capacites, couts
 
 
 # Affichage des tableaux
-def afficher_matrice(matrice, titre):
+def afficher_matrice(matrice: List[List[int]], titre: str) -> None:
+    """
+    Affiche une matrice avec un titre de façon formatée.
+    """
     print(f"\n{titre} :")
     n = len(matrice)
-    cell_width = 7  
+    cell_width = 7
 
-    # En-tête des colonnes
     print("     ", end="")
     for j in range(n):
         print(f"{'v'+str(j+1):^{cell_width}}", end="│")
@@ -51,7 +79,10 @@ def afficher_matrice(matrice, titre):
             print(f"{matrice[i][j]:^{cell_width}}│", end="")
         print()
 
-def afficher_bellman(distances, parents):
+def afficher_bellman(distances: List[float], parents: List[int]) -> None:
+    """
+    Affiche la table de Bellman (distances et prédécesseurs).
+    """
     print("\nTable de Bellman :")
     print("Sommet │ Distance │ Prédécesseur")
     print("-------│----------│-------------")
@@ -59,8 +90,10 @@ def afficher_bellman(distances, parents):
         pred = "-" if parents[i] == -1 else f"v{parents[i]+1}"
         print(f"v{i+1:^5} │ {distances[i]:^8} │ {pred:^11}")
 
-def afficher_matrice_FF(titre, c, flot, h=None):
-    # Affiche la matrice de flot sous la forme x/y, où x = flot actuel, y = capacité.
+def afficher_matrice_FF(titre: str, c: List[List[int]], flot: List[List[int]], h: Optional[List[int]] = None) -> None:
+    """
+    Affiche la matrice de flot sous la forme x/y (flot/capacité), éventuellement avec les hauteurs h.
+    """
     n = len(c)
     cell_width = 9  # Largeur constante pour chaque cellule
 
@@ -74,8 +107,6 @@ def afficher_matrice_FF(titre, c, flot, h=None):
         print(f"{header:^{cell_width}}", end="│")
     print("\n    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
 
-
-
     for i in range(n):
         print(f"{'v'+str(i+1):<3} │", end="")  # Nom de la ligne
         for j in range(n):
@@ -86,9 +117,14 @@ def afficher_matrice_FF(titre, c, flot, h=None):
             print(f"{cell:^{cell_width}}│", end="")
         print()
 
-        
 # Parcours en largeur
-def plargeur_chaine_améliorante(c, flot, s, t, parent, verbose=False):
+def plargeur_chaine_améliorante(
+    c: List[List[int]], flot: List[List[int]], s: int, t: int, parent: List[int], verbose: bool = False
+) -> bool:
+    """
+    Parcours en largeur pour trouver une chaîne améliorante dans le graphe résiduel.
+    Retourne True si un chemin de s à t est trouvé, et met à jour parent.
+    """
     n = len(c)
     visite = [False] * n
     file = deque()
@@ -104,17 +140,24 @@ def plargeur_chaine_améliorante(c, flot, s, t, parent, verbose=False):
         for v in range(n):
             residuel = c[u][v] - flot[u][v]
             if not visite[v] and residuel > 0:
-                parent[v] = u # Met à jour le tableau des parents quand un chemin est trouvé
+                # Met à jour le tableau des parents quand un chemin est trouvé
+                parent[v] = u
                 visite[v] = True
                 file.append(v)
                 if verbose:
                     print(f"    v{u+1} -> v{v+1} (capacité résiduelle = {residuel})")
                 if v == t:
-                    return True # Un chemin jusqu'au sommet final est trouvé
-    return False # Aucun chemin trouvable
+                    return True
+    return False
 
-# Algorithme de Ford-Fulkerson 
-def ford_fulkerson(c, s, t, verbose=False):
+# Algorithme de Ford-Fulkerson
+def ford_fulkerson(
+    c: List[List[int]], s: int, t: int, verbose: bool = False
+) -> int:
+    """
+    Algorithme de Ford-Fulkerson pour le flot maximum.
+    Retourne la valeur du flot maximum.
+    """
     n = len(c)
     flot = [[0]*n for _ in range(n)] # Initialisation du flot à 0
     parent = [-1] * n
@@ -123,7 +166,7 @@ def ford_fulkerson(c, s, t, verbose=False):
 
     if verbose:
         print("\nLe graphe résiduel initial est le graphe de départ.")
-    
+
     while plargeur_chaine_améliorante(c, flot, s, t, parent, verbose):
         if verbose:
             print(f"Itération {i} : ")
@@ -150,22 +193,27 @@ def ford_fulkerson(c, s, t, verbose=False):
         if verbose:
             afficher_matrice_FF(f"résiduelle {i}", c, flot)
         i += 1
-        
-    if verbose:
-        print("\nOn ne peut plus accéder au dernier sommet. Fin de l'agorithme.") 
-        afficher_matrice_FF("finale", c, flot)
-    
-    return flot_max
 
-def pousser_réétiqueter(c, s, t, verbose=False):
+    if verbose:
+        print("\nOn ne peut plus accéder au dernier sommet. Fin de l'agorithme.")
+        afficher_matrice_FF("finale", c, flot)
+
+    return int(flot_max)
+
+def pousser_reetiqueter(
+    c: List[List[int]], s: int, t: int, verbose: bool = False
+) -> int:
+    """
+    Algorithme Push-Relabel (pousser-réétiqueter) pour le flot maximum.
+    Retourne la valeur du flot maximum.
+    """
     n = len(c)
     flot = [[0] * n for _ in range(n)]
     h = [0] * n
     e = [0] * n
     h[s] = n
     actifs = deque()
-
-    # Pré-flot initial
+    actifs.append(s)
     for v in range(n):
         if c[s][v] > 0:
             flot[s][v] = c[s][v]
@@ -175,7 +223,7 @@ def pousser_réétiqueter(c, s, t, verbose=False):
             if v != s and v != t:
                 actifs.append(v)
 
-    def push(u, v):
+    def push(u: int, v: int) -> bool:
         delta = min(e[u], c[u][v] - flot[u][v])
         if delta > 0:
             flot[u][v] += delta
@@ -187,7 +235,7 @@ def pousser_réétiqueter(c, s, t, verbose=False):
             return True
         return False
 
-    def relabel(u):
+    def relabel(u: int) -> None:
         min_h = float('inf')
         for v in range(n):
             if c[u][v] - flot[u][v] > 0:
@@ -209,9 +257,13 @@ def pousser_réétiqueter(c, s, t, verbose=False):
 
     if verbose:
         print("Flot maximal =", sum(flot[s][v] for v in range(n)))
-    return sum(flot[s][v] for v in range(n))
 
-def afficher_table_bellman(snapshots, names):
+    return int(sum(flot[s][v] for v in range(n)))
+
+def afficher_table_bellman(snapshots: List[Tuple[List[float], List[int]]], names: List[str]) -> None:
+    """
+    Affiche la table de Bellman pour chaque itération (pour le flot de coût minimal).
+    """
     header = ["k"] + names[:]
     rows = []
     for k, (dist, parent) in enumerate(snapshots):
@@ -238,14 +290,14 @@ def afficher_table_bellman(snapshots, names):
     table = [header] + rows
     col_widths = [max(len(r[j]) for r in table) for j in range(len(header))]
 
-    def print_line(left, mid, right):
+    def print_line(left: str, mid: str, right: str) -> None:
         line = left
         for idx, w in enumerate(col_widths):
             line += '─' * (w + 2)
             line += mid if idx < len(col_widths)-1 else right
         print(line)
 
-    def print_row(items):
+    def print_row(items: List[str]) -> None:
         row = '│'
         for idx, item in enumerate(items):
             row += ' ' + item.center(col_widths[idx]) + ' ' + '│'
@@ -260,7 +312,13 @@ def afficher_table_bellman(snapshots, names):
     print_line('└', '┴', '┘')
 
 
-def flot_cout_minimal(c, couts, s, t, flux_demandee, verbose=False):
+def flot_cout_minimal(
+    c: List[List[int]], couts: List[List[int]], s: int, t: int, flux_demandee: int, verbose: bool = False
+) -> Tuple[List[List[int]], float]:
+    """
+    Algorithme de flot de coût minimal (chemins augmentants successifs, Bellman-Ford).
+    Retourne (flot, cout_total). Si le flot demandé n'est pas atteignable, cout_total vaut float('inf').
+    """
     n = len(c)
     # Réseau résiduel des capacités
     cap_res = [row[:] for row in c]
@@ -289,7 +347,8 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee, verbose=False):
             new_dist = dist.copy()
             new_parent = parent.copy()
             for u in range(n):
-                if dist[u] == float('inf'): continue
+                if dist[u] == float('inf'):
+                    continue
                 for v in range(n):
                     if cap_res[u][v] > 0 and new_dist[u] + cout_res[u][v] < new_dist[v]:
                         new_dist[v] = new_dist[u] + cout_res[u][v]
@@ -348,19 +407,19 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee, verbose=False):
                 cout_res[u][v] = -couts[v][u]  # Met à jour le coût résiduel inverse
 
         flux_courant += delta
+        it += 1
 
         if verbose:
             print(f"\nGraphe résiduel après itération {it} :")
             afficher_matrice(cap_res, "capacités résiduelles")
             afficher_matrice(cout_res, "coûts résiduels")
 
-        it += 1
 
     if flux_courant == flux_demandee:
         if verbose:
             print(f"\nAtteint le flot demandé = {flux_demandee} | coût minimal = {cout_total}\n")
         return flot, cout_total
-    else:
-        if verbose:
-            print(f"\nImpossible d'atteindre le flot demandé = {flux_demandee} | flot courant = {flux_courant} | coût minimal = infini\n")
-        return flot, float('inf')
+
+    if verbose:
+        print(f"\nImpossible d'atteindre le flot demandé = {flux_demandee} | flot courant = {flux_courant} | coût minimal = infini\n")
+    return flot, float('inf')
