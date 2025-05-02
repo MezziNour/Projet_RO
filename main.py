@@ -27,13 +27,13 @@ def main():
             if choix == "1":
                 valeur_flot = ford_fulkerson(capacites, s, t)
             elif choix == "2":
-                valeur_flot = pousser_réétiqueter(capacites, s, t)
+                valeur_flot = pousser_reetiqueter(capacites, s, t)
             else:
                 print("Choix invalide.")
                 continue
 
             print(f"\nValeur du flot maximal : {valeur_flot}")
-            
+
         elif type_probleme == "flot_min":
             print("\nProblème détecté : Flot à coût minimal")
             n, capacites, couts = lire_flot_min(chemin)
@@ -50,7 +50,7 @@ def main():
                 except ValueError:
                     print("Veuillez entrer un entier valide.")
 
-            flot, cout_total = flot_cout_minimal(capacites, couts, s, t, flux_demandee)
+            _, cout_total = flot_cout_minimal(capacites, couts, s, t, flux_demandee)
             print(f"\nRésultat : Coût minimal pour un flot de {flux_demandee} = {cout_total}")
 
         else:

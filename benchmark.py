@@ -1,7 +1,7 @@
-import numpy as np
 import time
 import csv
-from fonctions import ford_fulkerson, pousser_réétiqueter, flot_cout_minimal
+import numpy as np
+from fonctions import ford_fulkerson, pousser_reetiqueter, flot_cout_minimal
 
 # Génération d'un problème de flot aléatoire
 
@@ -32,11 +32,11 @@ def mesurer_temps(f, *args, **kwargs):
 
 # Boucle d'expérimentation
 
-def benchmark_algos(n_values, repetitions=100, output_file="resultats_benchmark.csv"):
+def benchmark_algos(num_nodes, repetitions=100, output_file="resultats_benchmark.csv"):
     with open(output_file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["n", "run", "algo", "temps"])
-        for n in n_values:
+        for n in num_nodes:
             for run in range(repetitions):
                 capacites, couts = generer_probleme_aleatoire(n)
                 s, t = 0, n-1
@@ -44,7 +44,7 @@ def benchmark_algos(n_values, repetitions=100, output_file="resultats_benchmark.
                 _, t_ff = mesurer_temps(ford_fulkerson, capacites.tolist(), s, t)
                 writer.writerow([n, run, "ford_fulkerson", t_ff])
                 # Pousser-Réétiqueter
-                _, t_pr = mesurer_temps(pousser_réétiqueter, capacites.tolist(), s, t)
+                _, t_pr = mesurer_temps(pousser_reetiqueter, capacites.tolist(), s, t)
                 writer.writerow([n, run, "pousser_reetiq", t_pr])
                 # Flot à coût min
                 flot_max, _ = mesurer_temps(ford_fulkerson, capacites.tolist(), s, t)
