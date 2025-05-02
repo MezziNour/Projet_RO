@@ -199,8 +199,8 @@ def pousser_réétiqueter(c, s, t, verbose=False):
                     if hauteur[u] == hauteur[v] + 1:
                         pousser(u, v)
                         break
-            else:
-                reetiqueter(u, min_hauteur)
+                else:
+                    reetiqueter(u, min_hauteur)
 
     return sum(flot[s][v] for v in range(n))
 
