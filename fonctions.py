@@ -182,7 +182,7 @@ def pousser_réétiqueter(c, s, t, verbose=False):
             flot[v][u] -= delta
             e[u] -= delta
             e[v] += delta
-            if v != s and v != t and e[v] == delta:
+            if v != s and v != t and e[v] == delta and v not in actifs:
                 actifs.append(v)
             return True
         return False
@@ -195,10 +195,8 @@ def pousser_réétiqueter(c, s, t, verbose=False):
         if min_h < float('inf'):
             h[u] = min_h + 1
 
-    cnt = 0
     while actifs:
         u = actifs.popleft()
-        cnt += 1
         while e[u] > 0:
             pushed = False
             for v in range(n):
