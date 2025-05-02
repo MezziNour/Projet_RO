@@ -16,6 +16,10 @@ def generer_probleme_aleatoire(n, seed=None):
     for (i, j) in indices[:nb_arcs]:
         capacites[i, j] = np.random.randint(1, 101)
         couts[i, j] = np.random.randint(1, 101)
+    # source n'a pas d'arcs entrants
+    capacites[:, 0] = 0
+    # puits n'a pas d'arcs sortants
+    capacites[n-1, :] = 0
     return capacites, couts
 
 # Mesure le temps d'exécution d'une fonction
