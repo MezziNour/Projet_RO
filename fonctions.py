@@ -184,23 +184,22 @@ def pousser_réétiqueter(c, s, t, verbose=False):
             if v != s and v != t and excedent[v] == delta:
                 actifs.append(v)
 
-    def reetiqueter(u, min_hauteur):
-        if min_hauteur < float('inf'):
-            hauteur[u] = min_hauteur + 1
-
     # Boucle principale de l'algorithme
     while actifs:
         u = actifs.popleft()
         while excedent[u] > 0:
             min_hauteur = float('inf')
+            trouve = False
             for v in range(n):
                 if c[u][v] - flot[u][v] > 0:
-                    min_hauteur = min(min_hauteur, hauteur[v])
                     if hauteur[u] == hauteur[v] + 1:
                         pousser(u, v)
+                        trouve = True
                         break
-                else:
-                    reetiqueter(u, min_hauteur)
+                    min_hauteur = min(min_hauteur, hauteur[v])
+            if not trouve:
+                if min_hauteur < float('inf'):
+                    hauteur[u] = min_hauteur + 1
 
     return sum(flot[s][v] for v in range(n))
 
