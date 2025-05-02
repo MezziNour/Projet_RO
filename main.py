@@ -50,7 +50,7 @@ def main():
                 except ValueError:
                     print("Veuillez entrer un entier valide.")
 
-            _, cout_total = flot_cout_minimal(capacites, couts, s, t, flux_demandee)
+            cout_total = flot_cout_minimal(capacites, couts, s, t, flux_demandee)
             print(f"\nRésultat : Coût minimal pour un flot de {flux_demandee} = {cout_total}")
 
         else:
