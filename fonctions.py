@@ -314,7 +314,7 @@ def afficher_table_bellman(snapshots: List[Tuple[List[float], List[int]]], names
 
 def flot_cout_minimal(
     c: List[List[int]], couts: List[List[int]], s: int, t: int, flux_demandee: int, verbose: bool = False
-) -> Tuple[List[List[int]], float]:
+) -> float:
     """
     Algorithme de flot de coût minimal (chemins augmentants successifs, Bellman-Ford).
     Retourne (flot, cout_total). Si le flot demandé n'est pas atteignable, cout_total vaut float('inf').
@@ -350,8 +350,8 @@ def flot_cout_minimal(
                 if dist[u] == float('inf'):
                     continue
                 for v in range(n):
-                    if cap_res[u][v] > 0 and new_dist[u] + cout_res[u][v] < new_dist[v]:
-                        new_dist[v] = new_dist[u] + cout_res[u][v]
+                    if cap_res[u][v] > 0 and dist[u] + cout_res[u][v] < new_dist[v]:
+                        new_dist[v] = dist[u] + cout_res[u][v]
                         new_parent[v] = u
                         updated = True
             dist, parent = new_dist, new_parent
@@ -376,7 +376,7 @@ def flot_cout_minimal(
         vus = set() # Ensemble des sommets visités pour éviter les cycles
         while v != s:
             u = parent[v]
-            if u == -1 or v in vus:  # Sécurité anti-boucle infinie et anti-cycle
+            if u == -1 or v in vus:
                 chemin = []
                 break
             chemin.insert(0, (u, v))
@@ -397,14 +397,19 @@ def flot_cout_minimal(
         for u, v in chemin:
             cap_res[u][v] -= delta
             cap_res[v][u] += delta
+
+            # Met à jour flot et coût
             if c[u][v] > 0:
                 flot[u][v] += delta
                 cout_total += delta * couts[u][v]
-                cout_res[v][u] = -couts[u][v]  # Met à jour le coût résiduel inverse
+                cout_res[u][v] = couts[u][v]
+                cout_res[v][u] = -couts[u][v]
             else:
                 flot[v][u] -= delta
                 cout_total -= delta * couts[v][u]
-                cout_res[u][v] = -couts[v][u]  # Met à jour le coût résiduel inverse
+                cout_res[v][u] = couts[v][u]
+                cout_res[u][v] = -couts[v][u]
+
 
         flux_courant += delta
         it += 1
@@ -418,8 +423,8 @@ def flot_cout_minimal(
     if flux_courant == flux_demandee:
         if verbose:
             print(f"\nAtteint le flot demandé = {flux_demandee} | coût minimal = {cout_total}\n")
-        return flot, cout_total
+        return cout_total
 
     if verbose:
         print(f"\nImpossible d'atteindre le flot demandé = {flux_demandee} | flot courant = {flux_courant} | coût minimal = infini\n")
-    return flot, float('inf')
+    return float('inf')
