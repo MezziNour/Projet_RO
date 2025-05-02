@@ -160,47 +160,57 @@ def ford_fulkerson(c, s, t, verbose=False):
 def pousser_réétiqueter(c, s, t, verbose=False):
     n = len(c)
     flot = [[0] * n for _ in range(n)]
-    hauteur = [0] * n
-    excedent = [0] * n
-    hauteur[s] = n
-    # Initialisation du pre-flot : saturer les arcs sortants du sommet source
+    h = [0] * n
+    e = [0] * n
+    h[s] = n
     actifs = deque()
+
+    # Pré-flot initial
     for v in range(n):
         if c[s][v] > 0:
             flot[s][v] = c[s][v]
-            flot[v][s] = -flot[s][v]
-            excedent[v] = c[s][v]
-            excedent[s] -= c[s][v]
+            flot[v][s] = -c[s][v]
+            e[v] = c[s][v]
+            e[s] -= c[s][v]
             if v != s and v != t:
                 actifs.append(v)
 
-    def pousser(u, v):
-        delta = min(excedent[u], c[u][v] - flot[u][v])
+    def push(u, v):
+        delta = min(e[u], c[u][v] - flot[u][v])
         if delta > 0:
             flot[u][v] += delta
             flot[v][u] -= delta
-            excedent[u] -= delta
-            excedent[v] += delta
-            if v != s and v != t and excedent[v] == delta:
+            e[u] -= delta
+            e[v] += delta
+            if v != s and v != t and e[v] == delta:
                 actifs.append(v)
+            return True
+        return False
 
-    # Boucle principale de l'algorithme
+    def relabel(u):
+        min_h = float('inf')
+        for v in range(n):
+            if c[u][v] - flot[u][v] > 0:
+                min_h = min(min_h, h[v])
+        if min_h < float('inf'):
+            h[u] = min_h + 1
+
+    cnt = 0
     while actifs:
         u = actifs.popleft()
-        while excedent[u] > 0:
-            min_hauteur = float('inf')
-            trouve = False
+        cnt += 1
+        while e[u] > 0:
+            pushed = False
             for v in range(n):
-                if c[u][v] - flot[u][v] > 0:
-                    if hauteur[u] == hauteur[v] + 1:
-                        pousser(u, v)
-                        trouve = True
+                if c[u][v] - flot[u][v] > 0 and h[u] == h[v] + 1:
+                    if push(u, v):
+                        pushed = True
                         break
-                    min_hauteur = min(min_hauteur, hauteur[v])
-            if not trouve:
-                if min_hauteur < float('inf'):
-                    hauteur[u] = min_hauteur + 1
+            if not pushed:
+                relabel(u)
 
+    if verbose:
+        print("Flot maximal =", sum(flot[s][v] for v in range(n)))
     return sum(flot[s][v] for v in range(n))
 
 def afficher_table_bellman(snapshots, names):
