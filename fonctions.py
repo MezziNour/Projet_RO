@@ -308,8 +308,6 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee, verbose=False):
         chemin = []
         v = t
         vus = set() # Ensemble des sommets visités pour éviter les cycles
-        vus.add(t)
-        vus.add(s)
         while v != s:
             u = parent[v]
             if u == -1 or v in vus:  # Sécurité anti-boucle infinie et anti-cycle
@@ -356,4 +354,6 @@ def flot_cout_minimal(c, couts, s, t, flux_demandee, verbose=False):
             print(f"\nAtteint le flot demandé = {flux_demandee} | coût minimal = {cout_total}\n")
         return flot, cout_total
     else:
+        if verbose:
+            print(f"\nImpossible d'atteindre le flot demandé = {flux_demandee} | flot courant = {flux_courant} | coût minimal = infini\n")
         return flot, float('inf')
