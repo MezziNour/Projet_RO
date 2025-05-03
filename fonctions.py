@@ -56,39 +56,55 @@ def lire_flot_min(chemin: str) -> Tuple[int, List[List[int]], List[List[int]]]:
 
 
 # Affichage des tableaux
-def afficher_matrice(matrice: List[List[int]], titre: str) -> None:
+def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[List[int]]] = None, other_titre: str = None) -> None:
     """
     Affiche une matrice avec un titre de façon formatée.
     """
     print(f"\n{titre} :")
     n = len(matrice)
     cell_width = 7
+    bold_start = "\033[1m"  # Code ANSI pour le texte en gras
+    bold_end = "\033[0m"    # Code ANSI pour réinitialiser le style
+    blue = "\033[34m"        # Rouge
+    reset = "\033[37m"       # Réinitialisation
 
     print("     ", end="")
     for j in range(n):
         print(f"{'v'+str(j+1):^{cell_width}}", end="│")
-    print()
 
     # Ligne de séparation
-    print("    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
+    print("\n    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
 
     # Corps de la matrice
     for i in range(n):
-        print(f"{'v'+str(i+1):<3} │", end="")
+        print(f"{'v'+str(i+1):<3} │", end="")  # Nom de la ligne
         for j in range(n):
-            print(f"{matrice[i][j]:^{cell_width}}│", end="")
+            if matrice[i][j] > 0:
+                cell = f"{matrice[i][j]}"
+                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+            else:
+                cell = "0"
+                print(f"{cell:^{cell_width}}│", end="")
         print()
+    
+    if other:
+        print(f"\n{other_titre} :")
+        print("     ", end="")
+        for j in range(n):
+            print(f"{'v'+str(j+1):^{cell_width}}", end="│")
 
-def afficher_bellman(distances: List[float], parents: List[int]) -> None:
-    """
-    Affiche la table de Bellman (distances et prédécesseurs).
-    """
-    print("\nTable de Bellman :")
-    print("Sommet │ Distance │ Prédécesseur")
-    print("-------│----------│-------------")
-    for i in range(len(distances)):
-        pred = "-" if parents[i] == -1 else f"v{parents[i]+1}"
-        print(f"v{i+1:^5} │ {distances[i]:^8} │ {pred:^11}")
+        # Ligne de séparation
+        print("\n    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
+        for i in range(n):
+            print(f"{'v'+str(i+1):<3} │", end="")  # Nom de la ligne
+            for j in range(n):
+                if matrice[i][j] > 0:
+                    cell = f"{other[i][j]}"
+                    print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+                else:
+                    cell = "0"
+                    print(f"{cell:^{cell_width}}│", end="")
+            print()
 
 def afficher_matrice_FF(titre: str, c: List[List[int]], flot: List[List[int]], h: Optional[List[int]] = None) -> None:
     """
@@ -96,6 +112,10 @@ def afficher_matrice_FF(titre: str, c: List[List[int]], flot: List[List[int]], h
     """
     n = len(c)
     cell_width = 9  # Largeur constante pour chaque cellule
+    bold_start = "\033[1m"  # Code ANSI pour le texte en gras
+    bold_end = "\033[0m"    # Code ANSI pour réinitialiser le style
+    blue = "\033[34m"        # Rouge
+    reset = "\033[37m"       # Réinitialisation
 
     print(f"\nMatrice {titre} :")
     print("     ", end="")
@@ -112,9 +132,10 @@ def afficher_matrice_FF(titre: str, c: List[List[int]], flot: List[List[int]], h
         for j in range(n):
             if c[i][j] > 0:
                 cell = f"{flot[i][j]}/{c[i][j]}"
+                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
             else:
                 cell = "0"
-            print(f"{cell:^{cell_width}}│", end="")
+                print(f"{cell:^{cell_width}}│", end="")
         print()
 
 # Parcours en largeur
@@ -212,6 +233,7 @@ def pousser_reetiqueter(
     h = [0] * n
     e = [0] * n
     h[s] = n
+    i = 0
     actifs = deque()
     actifs.append(s)
     for v in range(n):
@@ -222,16 +244,24 @@ def pousser_reetiqueter(
             e[s] -= c[s][v]
             if v != s and v != t:
                 actifs.append(v)
+    if verbose:
+        afficher_matrice_FF("initiale (0)", c, flot, h)
 
     def push(u: int, v: int) -> bool:
         delta = min(e[u], c[u][v] - flot[u][v])
+        flag = False
         if delta > 0:
+            if verbose and flot[u][v] + delta < 0:
+                print(f"Flot poussé de v{u+1} -> v{v+1} : {delta}")
+                flag = True
             flot[u][v] += delta
             flot[v][u] -= delta
             e[u] -= delta
             e[v] += delta
             if v != s and v != t and e[v] == delta and v not in actifs:
                 actifs.append(v)
+            if verbose and not flag:
+                print(f"Flot poussé de v{u+1} -> v{v+1} : {flot[u][v]}")
             return True
         return False
 
@@ -242,21 +272,44 @@ def pousser_reetiqueter(
                 min_h = min(min_h, h[v])
         if min_h < float('inf'):
             h[u] = min_h + 1
+        if verbose:
+            print(f"Réétiquetage de v{u+1} : {h[u]}")
+
+    def select_highest_active() -> Optional[int]:
+        """
+        Sélectionne le sommet actif avec la hauteur la plus grande.
+        En cas d'égalité, retourne celui avec l'indice le plus petit.
+        """
+        max_height = -1
+        selected = None
+        for u in actifs:
+            if h[u] > max_height or (h[u] == max_height and (selected is None or u < selected)):
+                max_height = h[u]
+                selected = u
+        actifs.remove(selected)
+        return selected
 
     while actifs:
-        u = actifs.popleft()
+        u = select_highest_active()
         while e[u] > 0:
+            i += 1
+            if verbose:
+                print(f"\nItération {i} :")
             pushed = False
-            for v in range(n):
-                if c[u][v] - flot[u][v] > 0 and h[u] == h[v] + 1:
-                    if push(u, v):
-                        pushed = True
-                        break
+            if c[u][t] - flot[u][t] > 0 and h[u] == h[t] + 1:
+                if push(u, t):
+                    pushed = True
+            else:
+                for v in range(n):
+                    if c[u][v] - flot[u][v] > 0 and h[u] == h[v] + 1:
+                        if push(u, v):
+                            pushed = True
+                            break
             if not pushed:
                 relabel(u)
-
-    if verbose:
-        print("Flot maximal =", sum(flot[s][v] for v in range(n)))
+            
+            if verbose:
+                afficher_matrice_FF(f"({i})", c, flot, h)
 
     return int(sum(flot[s][v] for v in range(n)))
 
@@ -332,7 +385,7 @@ def flot_cout_minimal(
     flot = [[0]*n for _ in range(n)]
     flux_courant = 0
     cout_total = 0
-    it = 1
+    it = 0
     names = ['s'] + [chr(ord('a')+i) for i in range(n-2)] + ['t']
 
     while flux_courant < flux_demandee:
@@ -358,6 +411,8 @@ def flot_cout_minimal(
             snapshots.append((dist.copy(), parent.copy()))
             if not updated:
                 break
+
+        it += 1
 
         # Affichage du tableau de Bellman
         if verbose:
@@ -391,7 +446,7 @@ def flot_cout_minimal(
         delta = min(flot_potentiel, flux_demandee - flux_courant)
 
         if verbose:
-            print(f"Chaîne augmentante {it} : {' -> '.join(names[u] for u, _ in chemin)} -> {names[t]} | flot potentiel = {delta}")
+            print(f"Chaîne améliorante {it} : {' -> '.join(names[u] for u, _ in chemin)} -> {names[t]} | flot potentiel = {delta}")
 
         # Mise à jour des flots, des coûts résiduels et du coût total
         for u, v in chemin:
@@ -412,12 +467,10 @@ def flot_cout_minimal(
 
 
         flux_courant += delta
-        it += 1
-
+        
         if verbose:
             print(f"\nGraphe résiduel après itération {it} :")
-            afficher_matrice(cap_res, "capacités résiduelles")
-            afficher_matrice(cout_res, "coûts résiduels")
+            afficher_matrice(cap_res, "capacités résiduelles", cout_res, "coûts résiduels")
 
 
     if flux_courant == flux_demandee:
