@@ -75,7 +75,7 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
         print(f"{'v'+str(j+1):^{cell_width}}", end="│")
 
     # Ligne de séparation
-    print("\n    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
+    print("\n    ├" + ("-" * cell_width + "┼") * (n - 1) + "-" * cell_width + "┤")
 
     # Corps de la matrice
     for i in range(n):
@@ -83,9 +83,9 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
         for j in range(n):
             if matrice[i][j] > 0:
                 cell = f"{matrice[i][j]}"
-                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+                print(f"{cell:^{cell_width}}│", end="")
             else:
-                cell = "0"
+                cell = "*"
                 print(f"{cell:^{cell_width}}│", end="")
         print()
     
@@ -96,15 +96,15 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
             print(f"{'v'+str(j+1):^{cell_width}}", end="│")
 
         # Ligne de séparation
-        print("\n    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
+        print("\n    ├" + ("-" * cell_width + "┼") * (n - 1) + "-" * cell_width + "┤")
         for i in range(n):
             print(f"{'v'+str(i+1):<3} │", end="")  # Nom de la ligne
             for j in range(n):
                 if matrice[i][j] > 0:
                     cell = f"{other[i][j]}"
-                    print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+                    print(f"{cell:^{cell_width}}│", end="")
                 else:
-                    cell = "0"
+                    cell = "*"
                     print(f"{cell:^{cell_width}}│", end="")
             print()
 
@@ -127,16 +127,16 @@ def afficher_matrice_FF(titre: str, c: List[List[int]], flot: List[List[int]], h
         else:
             header = f"v{j+1}"
         print(f"{header:^{cell_width}}", end="│")
-    print("\n    ├" + ("─" * cell_width + "┼") * (n - 1) + "─" * cell_width + "┤")
+    print("\n    ├" + ("-" * cell_width + "┼") * (n - 1) + "-" * cell_width + "┤")
 
     for i in range(n):
         print(f"{'v'+str(i+1):<3} │", end="")  # Nom de la ligne
         for j in range(n):
             if c[i][j] > 0:
                 cell = f"{flot[i][j]}/{c[i][j]}"
-                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+                print(f"{cell:^{cell_width}}│", end="")
             else:
-                cell = "0"
+                cell = "*"
                 print(f"{cell:^{cell_width}}│", end="")
         print()
 
@@ -325,7 +325,7 @@ def afficher_table_bellman(snapshots: List[Tuple[List[float], List[int]]], names
         row = [str(k)]
         for i in range(len(names)):
             if dist[i] == float('inf'):
-                cell = "+∞"
+                cell = "*"
             else:
                 if parent[i] == -1:
                     cell = str(dist[i])
@@ -348,7 +348,7 @@ def afficher_table_bellman(snapshots: List[Tuple[List[float], List[int]]], names
     def print_line(left: str, mid: str, right: str) -> None:
         line = left
         for idx, w in enumerate(col_widths):
-            line += '─' * (w + 2)
+            line += '-' * (w + 2)
             line += mid if idx < len(col_widths)-1 else right
         print(line)
 
