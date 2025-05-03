@@ -1,6 +1,7 @@
 from fonctions import *
 
 def main():
+    #generateTraces()
     while True:
         print("Résolution de problème de flot")
         numero = input("Entrez le numéro du fichier (0-10) : ").strip()
@@ -20,7 +21,7 @@ def main():
             t = n - 1
 
             print("\nChoisissez l'algorithme :")
-            print("1. Ford-Fulkerson")
+            print("1. Edmonds-Karp")
             print("2. Pousser - Réétiqueter")
             choix = input("Votre choix (1 ou 2) : ")
 

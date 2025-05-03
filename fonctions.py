@@ -1,4 +1,6 @@
 from collections import deque
+import os
+import sys
 from typing import List, Tuple, Optional
 
 # Lecture des données et stockage en mémoire
@@ -65,7 +67,7 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
     cell_width = 7
     bold_start = "\033[1m"  # Code ANSI pour le texte en gras
     bold_end = "\033[0m"    # Code ANSI pour réinitialiser le style
-    blue = "\033[34m"        # Rouge
+    blue = "\033[34m"        # Bleu
     reset = "\033[37m"       # Réinitialisation
 
     print("     ", end="")
@@ -81,7 +83,7 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
         for j in range(n):
             if matrice[i][j] > 0:
                 cell = f"{matrice[i][j]}"
-                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+                print(f"{blue}{bold_start}{cell:^{cell_width}{bold_end}{reset}}│", end="")
             else:
                 cell = "0"
                 print(f"{cell:^{cell_width}}│", end="")
@@ -100,7 +102,7 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
             for j in range(n):
                 if matrice[i][j] > 0:
                     cell = f"{other[i][j]}"
-                    print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+                    print(f"{blue}{bold_start}{cell:^{cell_width}{bold_end}{reset}}│", end="")
                 else:
                     cell = "0"
                     print(f"{cell:^{cell_width}}│", end="")
@@ -132,7 +134,7 @@ def afficher_matrice_FF(titre: str, c: List[List[int]], flot: List[List[int]], h
         for j in range(n):
             if c[i][j] > 0:
                 cell = f"{flot[i][j]}/{c[i][j]}"
-                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
+                print(f"{blue}{bold_start}{cell:^{cell_width}{bold_end}{reset}}│", end="")
             else:
                 cell = "0"
                 print(f"{cell:^{cell_width}}│", end="")
@@ -481,3 +483,47 @@ def flot_cout_minimal(
     if verbose:
         print(f"\nImpossible d'atteindre le flot demandé = {flux_demandee} | flot courant = {flux_courant} | coût minimal = infini\n")
     return float('inf')
+
+def generateTraces():
+    data_folder = 'data'
+    for fichier in os.listdir(data_folder):
+        if fichier.endswith('.txt'):
+            file_number = fichier.split(' ')[-1].split('.')[0]
+
+            type_probleme, n = detecter_type_probleme(f"data/{file_number}.txt")
+            
+            try:
+                if type_probleme == "flot_max":
+                    for i in range(2):
+                        n, capacites = lire_flot_max(f"data/{file_number}.txt")
+                        s = 0
+                        t = n - 1
+                        if i == 0:
+                            output_file = f'trace/B4-trace{file_number}-FF.txt'
+                            sys.stdout = open(output_file, 'w', encoding='utf-8')
+                            afficher_matrice(capacites, "Matrice des capacités")
+                            valeur_flot = ford_fulkerson(capacites, s, t, verbose=True)
+                        else:
+                            output_file = f'trace/B4-trace{file_number}-PR.txt'
+                            sys.stdout = open(output_file, 'w', encoding='utf-8')
+                            afficher_matrice(capacites, "Matrice des capacités")
+                            valeur_flot = pousser_reetiqueter(capacites, s, t, verbose=True)
+                        print(f"\nValeur du flot maximal : {valeur_flot}")
+                elif type_probleme == "flot_min":
+                    output_file = f'trace/B4-trace{file_number}-MIN.txt'
+                    sys.stdout = open(output_file, 'w', encoding='utf-8')                  
+                    n, capacites, couts = lire_flot_min(f"data/{file_number}.txt")
+                    afficher_matrice(capacites, "Matrice des capacités", couts, "Matrice des coûts")
+                    s = 0
+                    t = n - 1
+                    flot_max = ford_fulkerson(capacites, s, t)
+                    cout_total = flot_cout_minimal(capacites, couts, s, t, flot_max, verbose=True)
+                    print(f"\nRésultat : Coût minimal pour un flot de {flot_max} = {cout_total}")
+            except Exception as e:
+                print(f"Erreur lors du traitement du fichier {fichier}: {e}")
+            
+            # Close the file
+            sys.stdout.close()
+    
+    # Reset stdout to the original state
+    sys.stdout = sys.__stdout__

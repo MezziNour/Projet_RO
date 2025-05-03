@@ -1,0 +1,152 @@
+
+Matrice des capacités :
+       v1   │  v2   │  v3   │  v4   │  v5   │  v6   │  v7   │  v8   │
+    ├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┤
+v1  │   0   │   5   │   8   │   4   │   0   │   0   │   0   │   0   │
+v2  │   0   │   0   │   4   │   0   │   7   │   0   │   0   │   0   │
+v3  │   0   │   0   │   0   │   0   │   0   │   7   │   8   │   0   │
+v4  │   0   │   0   │   7   │   0   │   0   │   0   │   4   │   0   │
+v5  │   0   │   0   │   0   │   0   │   0   │   6   │   0   │   0   │
+v6  │   0   │   0   │   0   │   0   │   0   │   0   │   0   │   7   │
+v7  │   0   │   0   │   0   │   0   │   0   │   0   │   0   │  10   │
+v8  │   0   │   0   │   0   │   0   │   0   │   0   │   0   │   0   │
+
+Le graphe résiduel initial est le graphe de départ.
+
+Parcours en largeur pour chercher une chaîne améliorante :
+    v1 -> v2 (capacité résiduelle = 5)
+    v1 -> v3 (capacité résiduelle = 8)
+    v1 -> v4 (capacité résiduelle = 4)
+    v2 -> v5 (capacité résiduelle = 7)
+    v3 -> v6 (capacité résiduelle = 7)
+    v3 -> v7 (capacité résiduelle = 8)
+    v6 -> v8 (capacité résiduelle = 7)
+Itération 1 : 
+
+Chaîne améliorante 1 : v1 -> v3 -> v6 -> v8 de flot : 7
+
+Matrice résiduelle 1 :
+        v1    │   v2    │   v3    │   v4    │   v5    │   v6    │   v7    │   v8    │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+v1  │    0    │   0/5   │   7/8   │   0/4   │    0    │    0    │    0    │    0    │
+v2  │    0    │    0    │   0/4   │    0    │   0/7   │    0    │    0    │    0    │
+v3  │    0    │    0    │    0    │    0    │    0    │   7/7   │   0/8   │    0    │
+v4  │    0    │    0    │   0/7   │    0    │    0    │    0    │   0/4   │    0    │
+v5  │    0    │    0    │    0    │    0    │    0    │   0/6   │    0    │    0    │
+v6  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │   7/7   │
+v7  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │  0/10   │
+v8  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │    0    │
+
+Parcours en largeur pour chercher une chaîne améliorante :
+    v1 -> v2 (capacité résiduelle = 5)
+    v1 -> v3 (capacité résiduelle = 1)
+    v1 -> v4 (capacité résiduelle = 4)
+    v2 -> v5 (capacité résiduelle = 7)
+    v3 -> v7 (capacité résiduelle = 8)
+    v5 -> v6 (capacité résiduelle = 6)
+    v7 -> v8 (capacité résiduelle = 10)
+Itération 2 : 
+
+Chaîne améliorante 2 : v1 -> v3 -> v7 -> v8 de flot : 1
+
+Matrice résiduelle 2 :
+        v1    │   v2    │   v3    │   v4    │   v5    │   v6    │   v7    │   v8    │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+v1  │    0    │   0/5   │   8/8   │   0/4   │    0    │    0    │    0    │    0    │
+v2  │    0    │    0    │   0/4   │    0    │   0/7   │    0    │    0    │    0    │
+v3  │    0    │    0    │    0    │    0    │    0    │   7/7   │   1/8   │    0    │
+v4  │    0    │    0    │   0/7   │    0    │    0    │    0    │   0/4   │    0    │
+v5  │    0    │    0    │    0    │    0    │    0    │   0/6   │    0    │    0    │
+v6  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │   7/7   │
+v7  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │  1/10   │
+v8  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │    0    │
+
+Parcours en largeur pour chercher une chaîne améliorante :
+    v1 -> v2 (capacité résiduelle = 5)
+    v1 -> v4 (capacité résiduelle = 4)
+    v2 -> v3 (capacité résiduelle = 4)
+    v2 -> v5 (capacité résiduelle = 7)
+    v4 -> v7 (capacité résiduelle = 4)
+    v5 -> v6 (capacité résiduelle = 6)
+    v7 -> v8 (capacité résiduelle = 9)
+Itération 3 : 
+
+Chaîne améliorante 3 : v1 -> v4 -> v7 -> v8 de flot : 4
+
+Matrice résiduelle 3 :
+        v1    │   v2    │   v3    │   v4    │   v5    │   v6    │   v7    │   v8    │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+v1  │    0    │   0/5   │   8/8   │   4/4   │    0    │    0    │    0    │    0    │
+v2  │    0    │    0    │   0/4   │    0    │   0/7   │    0    │    0    │    0    │
+v3  │    0    │    0    │    0    │    0    │    0    │   7/7   │   1/8   │    0    │
+v4  │    0    │    0    │   0/7   │    0    │    0    │    0    │   4/4   │    0    │
+v5  │    0    │    0    │    0    │    0    │    0    │   0/6   │    0    │    0    │
+v6  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │   7/7   │
+v7  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │  5/10   │
+v8  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │    0    │
+
+Parcours en largeur pour chercher une chaîne améliorante :
+    v1 -> v2 (capacité résiduelle = 5)
+    v2 -> v3 (capacité résiduelle = 4)
+    v2 -> v5 (capacité résiduelle = 7)
+    v3 -> v7 (capacité résiduelle = 7)
+    v5 -> v6 (capacité résiduelle = 6)
+    v7 -> v4 (capacité résiduelle = 4)
+    v7 -> v8 (capacité résiduelle = 5)
+Itération 4 : 
+
+Chaîne améliorante 4 : v1 -> v2 -> v3 -> v7 -> v8 de flot : 4
+
+Matrice résiduelle 4 :
+        v1    │   v2    │   v3    │   v4    │   v5    │   v6    │   v7    │   v8    │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+v1  │    0    │   4/5   │   8/8   │   4/4   │    0    │    0    │    0    │    0    │
+v2  │    0    │    0    │   4/4   │    0    │   0/7   │    0    │    0    │    0    │
+v3  │    0    │    0    │    0    │    0    │    0    │   7/7   │   5/8   │    0    │
+v4  │    0    │    0    │   0/7   │    0    │    0    │    0    │   4/4   │    0    │
+v5  │    0    │    0    │    0    │    0    │    0    │   0/6   │    0    │    0    │
+v6  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │   7/7   │
+v7  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │  9/10   │
+v8  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │    0    │
+
+Parcours en largeur pour chercher une chaîne améliorante :
+    v1 -> v2 (capacité résiduelle = 1)
+    v2 -> v5 (capacité résiduelle = 7)
+    v5 -> v6 (capacité résiduelle = 6)
+    v6 -> v3 (capacité résiduelle = 7)
+    v3 -> v7 (capacité résiduelle = 3)
+    v7 -> v4 (capacité résiduelle = 4)
+    v7 -> v8 (capacité résiduelle = 1)
+Itération 5 : 
+
+Chaîne améliorante 5 : v1 -> v2 -> v5 -> v6 -> v3 -> v7 -> v8 de flot : 1
+
+Matrice résiduelle 5 :
+        v1    │   v2    │   v3    │   v4    │   v5    │   v6    │   v7    │   v8    │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+v1  │    0    │   5/5   │   8/8   │   4/4   │    0    │    0    │    0    │    0    │
+v2  │    0    │    0    │   4/4   │    0    │   1/7   │    0    │    0    │    0    │
+v3  │    0    │    0    │    0    │    0    │    0    │   6/7   │   6/8   │    0    │
+v4  │    0    │    0    │   0/7   │    0    │    0    │    0    │   4/4   │    0    │
+v5  │    0    │    0    │    0    │    0    │    0    │   1/6   │    0    │    0    │
+v6  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │   7/7   │
+v7  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │  10/10  │
+v8  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │    0    │
+
+Parcours en largeur pour chercher une chaîne améliorante :
+
+On ne peut plus accéder au dernier sommet. Fin de l'agorithme.
+
+Matrice finale :
+        v1    │   v2    │   v3    │   v4    │   v5    │   v6    │   v7    │   v8    │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┤
+v1  │    0    │   5/5   │   8/8   │   4/4   │    0    │    0    │    0    │    0    │
+v2  │    0    │    0    │   4/4   │    0    │   1/7   │    0    │    0    │    0    │
+v3  │    0    │    0    │    0    │    0    │    0    │   6/7   │   6/8   │    0    │
+v4  │    0    │    0    │   0/7   │    0    │    0    │    0    │   4/4   │    0    │
+v5  │    0    │    0    │    0    │    0    │    0    │   1/6   │    0    │    0    │
+v6  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │   7/7   │
+v7  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │  10/10  │
+v8  │    0    │    0    │    0    │    0    │    0    │    0    │    0    │    0    │
+
+Valeur du flot maximal : 17
