@@ -132,7 +132,7 @@ Parcours en largeur pour chercher une chaîne améliorante :
     v1 -> v2 (capacité résiduelle = 1)
     v2 -> v3 (capacité résiduelle = 4)
 
-On ne peut plus accéder au dernier sommet. Fin de l'agorithme.
+On ne peut plus accéder au dernier sommet. Fin de l'algorithme.
 
 Matrice finale :
         v1    │   v2    │   v3    │   v4    │   v5    │   v6    │   v7    │   v8    │

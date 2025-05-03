@@ -4,7 +4,7 @@ def main():
     #generateTraces()
     while True:
         print("Résolution de problème de flot")
-        numero = input("Entrez le numéro du fichier (0-10) : ").strip()
+        numero = input("Entrez le numéro du fichier (1-10) : ").strip()
         chemin = f"data/{numero}.txt"
 
         try:

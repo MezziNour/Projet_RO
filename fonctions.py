@@ -83,7 +83,7 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
         for j in range(n):
             if matrice[i][j] > 0:
                 cell = f"{matrice[i][j]}"
-                print(f"{blue}{bold_start}{cell:^{cell_width}{bold_end}{reset}}│", end="")
+                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
             else:
                 cell = "0"
                 print(f"{cell:^{cell_width}}│", end="")
@@ -102,7 +102,7 @@ def afficher_matrice(matrice: List[List[int]], titre: str, other: Optional[List[
             for j in range(n):
                 if matrice[i][j] > 0:
                     cell = f"{other[i][j]}"
-                    print(f"{blue}{bold_start}{cell:^{cell_width}{bold_end}{reset}}│", end="")
+                    print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
                 else:
                     cell = "0"
                     print(f"{cell:^{cell_width}}│", end="")
@@ -134,7 +134,7 @@ def afficher_matrice_FF(titre: str, c: List[List[int]], flot: List[List[int]], h
         for j in range(n):
             if c[i][j] > 0:
                 cell = f"{flot[i][j]}/{c[i][j]}"
-                print(f"{blue}{bold_start}{cell:^{cell_width}{bold_end}{reset}}│", end="")
+                print(f"{blue}{bold_start}{cell:^{cell_width}}{bold_end}{reset}│", end="")
             else:
                 cell = "0"
                 print(f"{cell:^{cell_width}}│", end="")
@@ -218,7 +218,7 @@ def ford_fulkerson(
         i += 1
 
     if verbose:
-        print("\nOn ne peut plus accéder au dernier sommet. Fin de l'agorithme.")
+        print("\nOn ne peut plus accéder au dernier sommet. Fin de l'algorithme.")
         afficher_matrice_FF("finale", c, flot)
 
     return int(flot_max)
