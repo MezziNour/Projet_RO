@@ -499,18 +499,18 @@ def generateTraces():
                         s = 0
                         t = n - 1
                         if i == 0:
-                            output_file = f'trace/B4-trace{file_number}-FF.txt'
+                            output_file = f'trace/E4-trace{file_number}-FF.txt'
                             sys.stdout = open(output_file, 'w', encoding='utf-8')
                             afficher_matrice(capacites, "Matrice des capacités")
                             valeur_flot = ford_fulkerson(capacites, s, t, verbose=True)
                         else:
-                            output_file = f'trace/B4-trace{file_number}-PR.txt'
+                            output_file = f'trace/E4-trace{file_number}-PR.txt'
                             sys.stdout = open(output_file, 'w', encoding='utf-8')
                             afficher_matrice(capacites, "Matrice des capacités")
                             valeur_flot = pousser_reetiqueter(capacites, s, t, verbose=True)
                         print(f"\nValeur du flot maximal : {valeur_flot}")
                 elif type_probleme == "flot_min":
-                    output_file = f'trace/B4-trace{file_number}-MIN.txt'
+                    output_file = f'trace/E4-trace{file_number}-MIN.txt'
                     sys.stdout = open(output_file, 'w', encoding='utf-8')                  
                     n, capacites, couts = lire_flot_min(f"data/{file_number}.txt")
                     afficher_matrice(capacites, "Matrice des capacités", couts, "Matrice des coûts")
